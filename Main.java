@@ -7,16 +7,17 @@ import java.util.*;
 
 public class Main {
 
-    public static void savetofile(ArrayList<Student> students)
+    public static void savetofile(HashMap<Integer,Student> students)
     {
         try{
             BufferedWriter bw = new BufferedWriter(new FileWriter("student.txt"));
         
-             for(Student s:students)
+             for(Student s:students.values())
              {
-                bw.write(s.name + ","+s.age+","+s.getMarks());
+                bw.write(s.getId() +","+s.name + ","+s.age+","+s.getMarks());
                 bw.newLine();
              }
+
             bw.close();
             System.out.print("Successfully Saved");
 
@@ -26,25 +27,38 @@ public class Main {
         
     }
 
-    public static void loadtofile(ArrayList<Student> students)
+    public static int loadfromfile(HashMap<Integer,Student> students)
     {
+
+        int Studentidcounter = 1;
+
         try{
-            BufferedReader br = new BufferedReader(new FileReader("sample.txt"));
+            BufferedReader br = new BufferedReader(new FileReader("student.txt"));
             students.clear();
+
+            int maxid = 0;
             String line;
 
             while((line = br.readLine())!=null){
+
                 String[] parts = line.split(",");
                 
-                String name = parts[0];
-                int age = Integer.parseInt(parts[1]);
-                int marks = Integer.parseInt(parts[2]);
+                int id = Integer.parseInt(parts[0]);
+                String name = parts[1];
+                int age = Integer.parseInt(parts[2]);
+                int marks = Integer.parseInt(parts[3]);
 
-                students.add(new Student(name,age,marks));
+                students.put(id,new Student(id,name,age,marks));
+
+                if( id > maxid)
+                 {
+                    maxid = id;
+                    }
             }
 
             br.close();
-            System.out.println("Loaded successfully!");
+
+            Studentidcounter = maxid +1;
 
             }catch(FileNotFoundException e){
                 System.out.println("File not found");
@@ -53,12 +67,17 @@ public class Main {
             {
                 System.out.print("Error"+ e);
             }
+
+            return Studentidcounter;
     }
 
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
-        ArrayList<Student> students = new ArrayList<>();
+        HashMap<Integer,Student> students = new HashMap<>();
+
+        int Studentidcounter = 1;
+
 
         int choice;
 
@@ -81,87 +100,112 @@ public class Main {
             switch(choice) {
 
                 case 1:
-                    System.out.print("Enter name: ");
-                    String name = sc.nextLine();
+                    {
+                        System.out.print("Enter name: ");
+                        String name = sc.nextLine();
 
-                try{
-                    System.out.print("Enter age: ");
-                    int age = sc.nextInt();
+                    try{
+                        System.out.print("Enter age: ");
+                        int age = sc.nextInt();
 
-                    if(age<0 || age>25){
-                        System.out.println("Enter Age btw 0-20");
-                        break;
+                        if(age<0 || age>25){
+                            System.out.println("Enter Age btw 0-20");
+                            break;
+                            }
+
+                        System.out.print("Enter marks: ");
+                        int marks = sc.nextInt();
+
+                        if(marks < 0 || marks >100){
+                            System.out.println("Enter Marks btw 0-100");
+                            break;
                         }
 
-                    System.out.print("Enter marks: ");
-                    int marks = sc.nextInt();
+                            Student s = new Student(Studentidcounter, name, age, marks);
+                            students.put(Studentidcounter,s);
+                            Studentidcounter++;
 
-                    if(marks < 0 || marks >100){
-                        System.out.println("Enter Marks btw 0-100");
-                        break;
+                        }catch(InputMismatchException e)
+                            {
+                            System.out.println("Enter integer number only");
+                            sc.nextLine();
+                            }  
+
+                            break;
                     }
-                        students.add(new Student(name, age, marks));
-                        System.out.println("Student added!");
-                        break;
-
-                    }catch(InputMismatchException e)
-                        {
-                        System.out.println("Enter integer number only");
-                        sc.nextLine();
-                        break;
-                        }  
 
 
                 case 2:
-                    System.out.println("\n--- All Students ---");
-                    for (Student s : students) {
-                        s.display();
+                    {
+                        System.out.println("\n--- All Students ---");
+                        for (Student s : students.values()) {
+                            s.display();
+                        }
+                        break;
                     }
-                    break;
 
                 case 3:
-                    System.out.print("Enter index to delete: ");
-                    int index = sc.nextInt();
-                    if(index >= 0 && index < students.size()) {
-                        students.remove(index);
+                    
+                    System.out.print("Enter the id to delete: ");
+                    int id = sc.nextInt();
+
+                    if(students.containsKey(id)) {
+                        students.remove(id);
                         System.out.println("Student deleted!");
                     } else {
-                        System.out.println("Invalid index!");
+                        System.out.println("Invalid id!");
                     }
                     break;
+                
 
                 case 4:
-                    System.out.print("Enter name to search: ");
-                    String key = sc.nextLine();
+                    {
+                        System.out.print("Enter the id to search: ");
+                        int key = sc.nextInt();
 
-                    boolean found = false;
+                        Student s = students.get(key);
 
-                    for (Student s : students) {
-                        if (s.name.equalsIgnoreCase(key)) {
-                            System.out.println("Found: " + s.name + " | " + s.age + " | " + s.getMarks());
-                            found = true;
+                        if(s != null)
+                        {
+                            s.display();
+                        }else {
+                            System.out.println("Student not found");
                         }
+                        break;
                     }
 
-                    if (!found) System.out.println("Student not found!");
-                    break;
-
                 case 5:
-                    students.sort((s1, s2) -> s1.getMarks() - s2.getMarks());
-                    System.out.println("Sorted by Marks!");
-                    break;
+                    {
+                        List<Student> studentlist = new ArrayList<>(students.values());
+                        studentlist.sort((s1, s2) -> s1.getMarks() - s2.getMarks());
+                        System.out.println("Sorted by Marks!");
+
+                        for(Student s : studentlist)
+                        {
+                            s.display();
+                        }
+                        break;
+                    }
 
                 case 6:
-                    students.sort((s1, s2) -> s1.name.compareTo(s2.name));
-                    System.out.println("Sorted by Name!");
-                    break;
+                    {
+                        List<Student> studentlistbyname = new ArrayList<>(students.values());
+                        studentlistbyname.sort((s1, s2) -> s1.name.compareTo(s2.name));
+                        System.out.println("Sorted by Name!");
+
+                        for(Student s : studentlistbyname)
+                        {
+                            s.display();
+                        }
+                        break;
+                    }   
 
                 case 7:
                     savetofile(students);
                     break;
 
                 case 8:
-                    loadtofile(students);
+                    Studentidcounter = loadfromfile(students);
                     break;
 
                 case 9:
