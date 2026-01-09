@@ -9,14 +9,30 @@ public class Student extends Person {
     {
         this.id = id;
         this.name = name;
-        this.age = age;
+        setAge(age);
+        setMarks(marks);
+    }
+
+    public Student(String name, int age,int marks)
+    {
+        this.name = name;
+        setAge(age);
         setMarks(marks);
     }
 
     public int getId() {return id;}
+    public int getAge() {return age;}
     public int getMarks() { return marks; }
 
-   
+    public void setAge(int age)
+    {
+        if(age < 0 || age > 25)
+        {
+            System.out.println("Invalid Age ");
+            return;
+        }
+        this.age = age;
+    }
 
     public void setMarks(int marks)
     {

@@ -6,101 +6,27 @@ import java.io.FileWriter;
 import java.util.*;
 
 public class Main {
-
-    public static void savetofile(HashMap<Integer,Student> students)
-    {
-        try{
-            BufferedWriter bw = new BufferedWriter(new FileWriter("student.txt"));
-        
-             for(Student s:students.values())
-             {
-                bw.write(s.getId() +","+s.name + ","+s.age+","+s.getMarks());
-                bw.newLine();
-             }
-
-            bw.close();
-            System.out.print("Successfully Saved");
-
-            }catch(Exception e){
-            System.out.print("Error"+e);
-        }
-        
-    }
-
-    public static int loadfromfile(HashMap<Integer,Student> students)
-    {
-
-        int Studentidcounter = 1;
-
-        try{
-            BufferedReader br = new BufferedReader(new FileReader("student.txt"));
-            students.clear();
-
-            int maxid = 0;
-            String line;
-
-            while((line = br.readLine())!=null){
-
-                String[] parts = line.split(",");
-                
-                int id = Integer.parseInt(parts[0]);
-                String name = parts[1];
-                int age = Integer.parseInt(parts[2]);
-                int marks = Integer.parseInt(parts[3]);
-
-                students.put(id,new Student(id,name,age,marks));
-
-                if( id > maxid)
-                 {
-                    maxid = id;
-                    }
-            }
-
-            br.close();
-
-            Studentidcounter = maxid +1;
-
-            }catch(FileNotFoundException e){
-                System.out.println("File not found");
-            } 
-            catch(Exception e)
-            {
-                System.out.print("Error"+ e);
-            }
-
-            return Studentidcounter;
-    }
-
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
-        HashMap<Integer,Student> students = new HashMap<>();
 
-        int Studentidcounter = 1;
-
-
-        int choice;
-
-        do {
-            System.out.println("\n--- STUDENT MANAGEMENT ---");
+        while(true) {
+            System.out.println("\n--- Academic Record ---");
             System.out.println("1. Add Student");
             System.out.println("2. View Students");
-            System.out.println("3. Delete Student");
-            System.out.println("4. Search Student");
-            System.out.println("5. Sort by Marks");
-            System.out.println("6. Sort by Name");
-            System.out.println("7. Save Student Details to File");
-            System.out.println("8. Load Student Details from File");
-            System.out.println("9. Exit");
+            System.out.println("3. Update Student Marks");            
+            System.out.println("4. Delete Student");            
+            System.out.println("5. Search Student");
+            System.out.println("6. Exit");
 
             System.out.print("Enter choice: ");
-            choice = sc.nextInt();
+            int choice = sc.nextInt();
             sc.nextLine();
 
             switch(choice) {
 
                 case 1:
-                    {
+                
                         System.out.print("Enter name: ");
                         String name = sc.nextLine();
 
@@ -121,9 +47,8 @@ public class Main {
                             break;
                         }
 
-                            Student s = new Student(Studentidcounter, name, age, marks);
-                            students.put(Studentidcounter,s);
-                            Studentidcounter++;
+                            Student s = new Student(name, age, marks);
+                            StudentDAO.addStudent(s);                          
 
                         }catch(InputMismatchException e)
                             {
@@ -132,92 +57,58 @@ public class Main {
                             }  
 
                             break;
-                    }
-
+                    
 
                 case 2:
-                    {
+                    
                         System.out.println("\n--- All Students ---");
-                        for (Student s : students.values()) {
-                            s.display();
+                        ArrayList<Student> list = StudentDAO.getAllStudents();
+                        for (Student st : list) {
+                            st.display();
                         }
                         break;
-                    }
+                    
 
                 case 3:
                     
-                    System.out.print("Enter the id to delete: ");
-                    int id = sc.nextInt();
+                    System.out.print("Enter the id to update: ");
+                    int uid = sc.nextInt();
 
-                    if(students.containsKey(id)) {
-                        students.remove(id);
-                        System.out.println("Student deleted!");
-                    } else {
-                        System.out.println("Invalid id!");
-                    }
+                    System.out.println("Enter new marks: ");
+                    int m = sc.nextInt();
+
+                    StudentDAO.updateStudentMarks(uid, m);
                     break;
                 
 
                 case 4:
-                    {
-                        System.out.print("Enter the id to search: ");
-                        int key = sc.nextInt();
+                    System.out.print("Enter ID to delete: ");
+                    int did = sc.nextInt();
 
-                        Student s = students.get(key);
+                    StudentDAO.deleteStudent(did);
+                    break;
 
-                        if(s != null)
-                        {
-                            s.display();
-                        }else {
-                            System.out.println("Student not found");
-                        }
-                        break;
-                    }
 
                 case 5:
-                    {
-                        List<Student> studentlist = new ArrayList<>(students.values());
-                        studentlist.sort((s1, s2) -> s1.getMarks() - s2.getMarks());
-                        System.out.println("Sorted by Marks!");
+                    
+                    System.out.print("Enter ID: ");
+                    int sid = sc.nextInt();
 
-                        for(Student s : studentlist)
-                        {
-                            s.display();
-                        }
-                        break;
-                    }
+                    Student found = StudentDAO.getStudentById(sid);
+                    if (found != null)
+                        System.out.println(found.getId() + " | " + found.name + " | " + found.getMarks());
+                    else
+                        System.out.println("Student not found");
+                    break;
+                    
 
                 case 6:
-                    {
-                        List<Student> studentlistbyname = new ArrayList<>(students.values());
-                        studentlistbyname.sort((s1, s2) -> s1.name.compareTo(s2.name));
-                        System.out.println("Sorted by Name!");
-
-                        for(Student s : studentlistbyname)
-                        {
-                            s.display();
-                        }
-                        break;
-                    }   
-
-                case 7:
-                    savetofile(students);
-                    break;
-
-                case 8:
-                    Studentidcounter = loadfromfile(students);
-                    break;
-
-                case 9:
                     System.out.println("Exiting...");
                     break;
 
                 default:
                     System.out.println("Invalid choice!");
             }
-
-        } while(choice != 9);
-
-        sc.close();
+        } 
     }
 }
